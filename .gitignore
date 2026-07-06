@@ -25,7 +25,3 @@ Desktop.ini
 # ── Env / secrets ─────────────────────────────
 .env
 *.local
-target/debug/deps/libcerdai_autodiff-4d265d80e3265f2e.rmeta
-/target
-/target
-/target
