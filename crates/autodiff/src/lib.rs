@@ -10,9 +10,11 @@ impl Value {
     }
 
     fn add(self, other: Value) -> Value {
-        data: self.data + other.data,
-        grad: 0.0,
-        children: vec![self, other],
+        Value {
+            data: self.data + other.data,
+            grad: 0.0,
+            children: vec![self, other],
+        }
     }
 }
 
@@ -26,7 +28,7 @@ mod tests {
         assert_eq!(v.data, 3.0);
         assert_eq!(v.grad, 0.0);
     }
-
+    
     #[test]
     fn value_can_feed_two_ops() {
         let a = Value::new(2.0);
