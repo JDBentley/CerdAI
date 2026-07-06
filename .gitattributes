@@ -1,0 +1,17 @@
+# Normalize line endings: store LF in the repo, let each OS check out its native form.
+* text=auto
+
+# Rust and config files are always text with LF.
+*.rs    text eol=lf
+*.toml  text eol=lf
+*.md    text eol=lf
+
+# Windows batch/PowerShell scripts want CRLF if you ever add them.
+*.bat   text eol=crlf
+*.ps1   text eol=crlf
+
+# Treat these as binary — never touch their bytes, never diff them as text.
+*.png   binary
+*.pdb   binary
+*.rlib  binary
+*.rmeta binary

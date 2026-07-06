@@ -1,0 +1,31 @@
+# ── Rust / Cargo ──────────────────────────────
+# All build output (debug + release) lives here; cargo regenerates it.
+/target
+
+# MSVC (your Windows toolchain) writes these debug-symbol files.
+# This is almost certainly your "debug files".
+*.pdb
+
+# rustfmt backup files, if it ever can't overwrite in place.
+**/*.rs.bk
+
+# Cargo.lock stays TRACKED (do not ignore it): this workspace will hold
+# binaries, and a committed lockfile keeps their builds reproducible.
+# (Library-only crates sometimes ignore it — CERD isn't that.)
+
+# ── Editor / IDE ──────────────────────────────
+/.vscode/*
+!/.vscode/extensions.json
+
+# ── OS cruft ──────────────────────────────────
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# ── Env / secrets ─────────────────────────────
+.env
+*.local
+target/debug/deps/libcerdai_autodiff-4d265d80e3265f2e.rmeta
+/target
+/target
+/target
