@@ -5,6 +5,7 @@ struct ValueData {
     data: f64,
     grad: f64,
     children: Vec<Value>,
+    backward: Box<dyn Fn()>,
 }
 
 #[derive(Clone)]
@@ -16,16 +17,28 @@ impl Value {
             data,
             grad: 0.0,
             children: Vec::new(),
+            backward: Box::new(|| {}),
         })))
     }
 
     fn add(&self, other: &Value) -> Value {
         let data = self.0.borrow().data + other.0.borrow().data;
-        Value(Rc::new(RefCell::new(ValueData {
+        let out = Value(Rc::new(RefCell::new(ValueData {
             data,
             grad: 0.0,
             children: vec![self.clone(), other.clone()],
-        })))
+            backward: Box::new(|| {}),
+        })));
+        
+        let self_clone = self.clone();
+        let other_clone = other.clone();
+        let out_clone = out.clone();
+        out.0.borrow_mut().backward = Box::new(move || {
+            self_clone.0.borrow_mut().grad += out_clone.0.borrow().grad;
+            other_clone.0.borrow_mut().grad += out_clone.0.borrow().grad;
+        });
+
+        out
     }
 }
 
@@ -48,5 +61,18 @@ mod tests {
         let d = a.add(&b);
         assert_eq!(c.0.borrow().data, 5.0);
         assert_eq!(d.0.borrow().data, 5.0);
+    }
+
+    #[test]
+    fn single_add_backward() {
+        let a = Value::new(2.0);
+        let b = Value::new(3.0);
+        let c = a.add(&b);
+
+        c.0.borrow_mut().grad = 1.0;
+        (c.0.borrow().backward)();
+
+        assert_eq!(a.0.borrow().grad, 1.0);
+        assert_eq!(b.0.borrow().grad, 1.0);
     }
 }
