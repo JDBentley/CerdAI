@@ -40,6 +40,33 @@ impl Value {
 
         out
     }
+
+    fn same_node(&self, other: &Value) -> bool {
+        Rc::ptr_eq(&self.0, &other.0)
+    }
+
+    fn build_topo(&self, visited: &mut Vec<Value>, topo: &mut Vec<Value>) {
+        if visited.iter().any(|v| v.same_node(self)) {
+            return;
+        }
+        visited.push(self.clone());
+        for child in self.0.borrow().children.iter() {
+            child.build_topo(visited, topo);
+        }
+        topo.push(self.clone());
+    }
+
+    fn backward(&self) {
+        let mut visited = Vec::new();
+        let mut topo = Vec::new();
+        self.build_topo(&mut visited, &mut topo);
+
+        self.0.borrow_mut().grad = 1.0;
+
+        for node in topo.iter().rev() {
+            (node.0.borrow().backward)();
+        }
+    }
 }
 
 #[cfg(test)]
@@ -74,5 +101,33 @@ mod tests {
 
         assert_eq!(a.0.borrow().grad, 1.0);
         assert_eq!(b.0.borrow().grad, 1.0);
+    }
+
+    #[test]
+    fn same_node_is_identity_not_value() {
+        let a = Value::new(2.0);
+        let a_clone = a.clone();
+        let b = Value::new(2.0);
+
+        assert!(a.same_node(&a_clone));
+        assert!(!a.same_node(&b));
+    }
+
+    #[test]
+    fn composed_backward() {
+        let a = Value::new(2.0);
+        let b = Value::new(3.0);
+        let c = Value::new(4.0);
+
+        let d = a.add(&b);
+        let e = d.add(&c);
+
+        e.backward();
+
+        assert_eq!(e.0.borrow().data, 9.0);
+        assert_eq!(a.0.borrow().grad, 1.0);
+        assert_eq!(b.0.borrow().grad, 1.0);
+        assert_eq!(c.0.borrow().grad, 1.0);
+        assert_eq!(d.0.borrow().grad, 1.0);
     }
 }
