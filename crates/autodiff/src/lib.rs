@@ -96,6 +96,15 @@ impl Value {
 mod tests {
     use super::*;
 
+    fn expr(a: f64, b: f64, c: f64) -> f64 {
+        let av = Value::new(a);
+        let bv = Value::new(b);
+        let cv = Value::new(c);
+        let out = av.mul(&bv).add(&cv);
+        let result = out.0.borrow().data;
+        result
+    }
+
     #[test]
     fn constructs_a_value() {
         let v = Value::new(3.0);
@@ -165,5 +174,40 @@ mod tests {
         assert_eq!(c.0.borrow().data, 6.0);
         assert_eq!(a.0.borrow().grad, 3.0);
         assert_eq!(b.0.borrow().grad, 2.0);
+    }
+    
+    #[test]
+    fn gradient_accumulates_when_value_resused() {
+        let a = Value::new(3.0);
+        let y = a.mul(&a);
+
+        y.backward();
+
+        assert_eq!(y.0.borrow().data, 9.0);
+        assert_eq!(a.0.borrow().grad, 6.0);
+    }
+
+    #[test]
+    fn gradient_check_matches_finite_differences() {
+        let (a, b, c) = (2.0, -3.0, 5.0);
+
+        let av = Value::new(a);
+        let bv = Value::new(b);
+        let cv = Value::new(c);
+        let out = av.mul(&bv).add(&cv);
+        out.backward();
+
+        let grad_a = av.0.borrow().grad;
+        let grad_b = bv.0.borrow().grad;
+        let grad_c = cv.0.borrow().grad;
+
+        let h = 1e-5;
+        let num_a = (expr(a + h, b, c) - expr(a - h, b, c)) / (2.0 * h);
+        let num_b = (expr(a, b + h, c) - expr(a, b - h, c)) / (2.0 * h);
+        let num_c = (expr(a, b, c + h) - expr(a, b, c - h)) / (2.0 * h);
+
+        assert!((grad_a - num_a).abs() < 1e-6);
+        assert!((grad_b - num_b).abs() < 1e-6);
+        assert!((grad_c - num_c).abs() < 1e-6);
     }
 }
