@@ -67,6 +67,29 @@ impl Value {
             (node.0.borrow().backward)();
         }
     }
+
+    fn mul(&self, other: &Value) -> Value {
+        let data = self.0.borrow().data * other.0.borrow().data;
+        let out = Value(Rc::new(RefCell::new(ValueData {
+            data,
+            grad: 0.0,
+            children: vec![self.clone(), other.clone()],
+            backward: Box::new(|| {}),
+        })));
+
+        let self_clone = self.clone();
+        let other_clone = other.clone();
+        let out_clone = out.clone();
+        out.0.borrow_mut().backward = Box::new(move || {
+            let self_data = self_clone.0.borrow().data;
+            let other_data = other_clone.0.borrow().data;
+            let out_grad = out_clone.0.borrow().grad;
+            self_clone.0.borrow_mut().grad += out_grad * other_data;
+            other_clone.0.borrow_mut().grad += out_grad * self_data;
+        });
+
+        out
+    }
 }
 
 #[cfg(test)]
@@ -129,5 +152,18 @@ mod tests {
         assert_eq!(b.0.borrow().grad, 1.0);
         assert_eq!(c.0.borrow().grad, 1.0);
         assert_eq!(d.0.borrow().grad, 1.0);
+    }
+
+    #[test]
+    fn single_mul_backward() {
+        let a = Value::new(2.0);
+        let b = Value::new(3.0);
+        let c = a.mul(&b);
+
+        c.backward();
+
+        assert_eq!(c.0.borrow().data, 6.0);
+        assert_eq!(a.0.borrow().grad, 3.0);
+        assert_eq!(b.0.borrow().grad, 2.0);
     }
 }
