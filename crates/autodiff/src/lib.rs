@@ -1,18 +1,18 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
-struct ValueData {
-    data: f64,
-    grad: f64,
+pub struct ValueData {
+    pub data: f64,
+    pub grad: f64,
     children: Vec<Value>,
     backward: Box<dyn Fn()>,
 }
 
 #[derive(Clone)]
-struct Value(Rc<RefCell<ValueData>>);
+pub struct Value(pub Rc<RefCell<ValueData>>);
 
 impl Value {
-    fn new(data: f64) -> Value {
+    pub fn new(data: f64) -> Value {
         Value (Rc::new(RefCell::new(ValueData {
             data,
             grad: 0.0,
@@ -21,7 +21,7 @@ impl Value {
         })))
     }
 
-    fn add(&self, other: &Value) -> Value {
+    pub fn add(&self, other: &Value) -> Value {
         let data = self.0.borrow().data + other.0.borrow().data;
         let out = Value(Rc::new(RefCell::new(ValueData {
             data,
@@ -41,11 +41,11 @@ impl Value {
         out
     }
 
-    fn same_node(&self, other: &Value) -> bool {
+    pub fn same_node(&self, other: &Value) -> bool {
         Rc::ptr_eq(&self.0, &other.0)
     }
 
-    fn build_topo(&self, visited: &mut Vec<Value>, topo: &mut Vec<Value>) {
+    pub fn build_topo(&self, visited: &mut Vec<Value>, topo: &mut Vec<Value>) {
         if visited.iter().any(|v| v.same_node(self)) {
             return;
         }
@@ -56,7 +56,7 @@ impl Value {
         topo.push(self.clone());
     }
 
-    fn backward(&self) {
+    pub fn backward(&self) {
         let mut visited = Vec::new();
         let mut topo = Vec::new();
         self.build_topo(&mut visited, &mut topo);
@@ -68,7 +68,7 @@ impl Value {
         }
     }
 
-    fn mul(&self, other: &Value) -> Value {
+    pub fn mul(&self, other: &Value) -> Value {
         let data = self.0.borrow().data * other.0.borrow().data;
         let out = Value(Rc::new(RefCell::new(ValueData {
             data,
