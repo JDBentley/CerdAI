@@ -5,10 +5,19 @@
 // Mul - create elementwise
 // Backward - topological walk, seed, and run closures
 
+use std::rc::Rc;
+use std::cell::RefCell;
+
 struct TensorData {
     data: Vec<f64>,
     shape: Vec<usize>,
+    grad: Vec<f64>,
+    children: Vec<Tensor>,
+    backward: Box<dyn Fn()>,
 }
+
+#[derive(Clone)]
+struct Tensor(Rc<RefCell<TensorData>>);
 
 impl TensorData {
     fn new(data: Vec<f64>, shape: Vec<usize>) -> TensorData {
@@ -21,7 +30,19 @@ impl TensorData {
             shape,
             expected
         );
-        TensorData { data, shape }
+        TensorData { 
+            data, 
+            shape,
+            grad: vec![0.0; expected],
+            children: Vec::new(),
+            backward: Box::new(|| {}), 
+        }
+    }
+}
+
+impl Tensor {
+    fn new(data: Vec<f64>, shape: Vec<usize>) -> Tensor {
+        Tensor(Rc::new(RefCell::new(TensorData::new(data, shape))))
     }
 }
 
@@ -41,5 +62,12 @@ mod tests {
     fn rejects_mitsmatched_shape(){
         // Using 5 numbers but the shape should require 6. This should give us an error.
         TensorData::new(vec![1.0, 2.0, 3.0, 4.0, 5.0], vec![2, 3]);
+    }
+
+    #[test]
+    fn tensor_new_wraps_validated_data() {
+        let t = Tensor::new(vec![1.0, 2.0, 3.0, 4.0], vec![2, 2]);
+        assert_eq!(t.0.borrow().data, vec![1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(t.0.borrow().shape, vec![2, 2]);
     }
 }
