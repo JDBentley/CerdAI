@@ -77,6 +77,50 @@ impl Tensor {
 
         out
     }
+
+    fn mul(&self, other: &Tensor) -> Tensor {
+        assert_eq!(
+            self.0.borrow().shape,
+            other.0.borrow().shape,
+            "mul: shape mismatch"
+        );
+
+        let data: Vec<f64> = self
+            .0
+            .borrow()
+            .data
+            .iter()
+            .zip(other.0.borrow().data.iter())
+            .map(|(a, b)| a * b)
+            .collect();
+
+        let shape = self.0.borrow().shape.clone();
+        let out = Tensor::new(data, shape);
+
+        let self_clone = self.clone();
+        let other_clone = other.clone();
+        let out_clone = out.clone();
+        out.0.borrow_mut().backward = Box::new(move || {
+            let out_grad = out_clone.0.borrow().grad.clone();
+            let self_data = self_clone.0.borrow().data.clone();
+            let other_data = other_clone.0.borrow().data.clone();
+            
+            let mut self_grad_delta = vec![0.0; out_grad.len()];
+            let mut other_grad_delta = vec![0.0; out_grad.len()];
+            for i in 0..out_grad.len() {
+                self_grad_delta[i] = out_grad[i] * other_data[i];
+                other_grad_delta[i] = out_grad[i] * self_data[i];
+            }
+            for i in 0..out_grad.len() {
+                self_clone.0.borrow_mut().grad[i] += self_grad_delta[i];
+            }
+            for i in 0..out_grad.len() {
+                other_clone.0.borrow_mut().grad[i] += other_grad_delta[i];
+            }
+        });
+
+        out
+    }
 }
 
 #[cfg(test)]
@@ -121,6 +165,37 @@ mod tests {
         // Passes gradient straight through. Grad = 1
         assert_eq!(a.0.borrow().grad, vec![1.0, 1.0, 1.0, 1.0]);
         assert_eq!(b.0.borrow().grad, vec![1.0, 1.0, 1.0, 1.0]);
+    }
+
+    #[test]
+    fn mul_forward_and_backward() {
+        let a = Tensor::new(vec![2.0, 3.0, 4.0], vec![3]);
+        let b = Tensor::new(vec![5.0, 6.0, 7.0], vec![3]);
+
+        let c = a.mul(&b);
+
+        // Forward elemntwise product
+        assert_eq!(c.0.borrow().data, vec![10.0, 18.0, 28.0]);
+
+        // Seed grad to 1s
+        c.0.borrow_mut().grad = vec![1.0, 1.0, 1.0];
+        (c.0.borrow().backward)();
+
+        // Product rule
+        assert_eq!(a.0.borrow().grad, vec![5.0, 6.0, 7.0]);
+        assert_eq!(b.0.borrow().grad, vec![2.0, 3.0, 4.0]);
+    }
+
+    #[test]
+    fn mul_reused_tensor_accumulates() {
+        let a = Tensor::new(vec![3.0, 4.0], vec![2]);
+
+        let y = a.mul(&a);
+
+        y.0.borrow_mut().grad = vec![1.0, 1.0];
+        (y.0.borrow().backward)();
+
+        assert_eq!(a.0.borrow().grad, vec![6.0, 8.0]);
     }
 
 }
