@@ -1,7 +1,7 @@
 // TODO:
 // [x] TensorData - add flat data and shape with the size invariant
-// Indexing - add in the newtype for TensorData handle
-// Add - create elementwise
+// [x] Indexing - add in the newtype for TensorData handle
+// [x] Add - create elementwise
 // Mul - create elementwise
 // Backward - topological walk, seed, and run closures
 
@@ -44,6 +44,39 @@ impl Tensor {
     fn new(data: Vec<f64>, shape: Vec<usize>) -> Tensor {
         Tensor(Rc::new(RefCell::new(TensorData::new(data, shape))))
     }
+
+    fn add(&self, other: &Tensor) -> Tensor {
+        assert_eq!(
+            self.0.borrow().shape,
+            other.0.borrow().shape,
+            "add: shape mismatch"
+        );
+
+        let data: Vec<f64> = self
+            .0
+            .borrow()
+            .data
+            .iter()
+            .zip(other.0.borrow().data.iter())
+            .map(| (a, b)| a + b)
+            .collect();
+        
+        let shape = self.0.borrow().shape.clone();
+        let out = Tensor::new(data, shape);
+
+        let self_clone = self.clone();
+        let other_clone = other.clone();
+        let out_clone = out.clone();
+        out.0.borrow_mut().backward = Box::new(move || {
+            let out_grad = out_clone.0.borrow().grad.clone();
+            for (i, g) in out_grad.iter().enumerate() {
+                self_clone.0.borrow_mut().grad[i] += g;
+                other_clone.0.borrow_mut().grad[i] += g;
+            }
+        });
+
+        out
+    }
 }
 
 #[cfg(test)]
@@ -70,4 +103,24 @@ mod tests {
         assert_eq!(t.0.borrow().data, vec![1.0, 2.0, 3.0, 4.0]);
         assert_eq!(t.0.borrow().shape, vec![2, 2]);
     }
+
+    #[test]
+    fn add_forward_and_backward() {
+        let a = Tensor::new(vec![1.0, 2.0, 3.0, 4.0], vec![2, 2]);
+        let b = Tensor::new(vec![10.0, 20.0, 30.0, 40.0], vec![2, 2]);
+
+        let c = a.add(&b);
+
+        // Forward elentwise sum
+        assert_eq!(c.0.borrow().data, vec![11.0, 22.0, 33.0, 44.0]);
+
+        // Seed the output manually
+        c.0.borrow_mut().grad = vec![1.0, 1.0, 1.0, 1.0];
+        (c.0.borrow().backward)();
+
+        // Passes gradient straight through. Grad = 1
+        assert_eq!(a.0.borrow().grad, vec![1.0, 1.0, 1.0, 1.0]);
+        assert_eq!(b.0.borrow().grad, vec![1.0, 1.0, 1.0, 1.0]);
+    }
+
 }
