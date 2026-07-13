@@ -5,3 +5,7 @@ version = 4
 [[package]]
 name = "cerdai-autodiff"
 version = "0.1.0"
+
+[[package]]
+name = "cerdai-tensor"
+version = "0.1.0"

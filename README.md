@@ -39,8 +39,8 @@ Full detail — the data flow, the three hierarchies, the crate map, and the ref
 
 The build is dependency-ordered so that no module stacks more than one new hard thing at a time:
 
-1. **Scalar autodiff** ← *in progress*
-2. Tensor autodiff + CPU-validated layers
+1. **Scalar autodiff** ← *Complete*
+2. **Tensor autodiff + CPU-validated layers** ← *In Progress*
 3. GPU kernels (CubeCL)
 4. World model (RSSM)
 5. Hierarchy (manager / worker)

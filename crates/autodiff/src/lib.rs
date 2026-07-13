@@ -84,12 +84,13 @@ impl Value {
             let self_data = self_clone.0.borrow().data;
             let other_data = other_clone.0.borrow().data;
             let out_grad = out_clone.0.borrow().grad;
-            self_clone.0.borrow_mut().grad += out_grad * other_data;
+            self_clone.0.borrow_mut().grad  += out_grad * other_data;
             other_clone.0.borrow_mut().grad += out_grad * self_data;
         });
 
         out
     }
+
 }
 
 #[cfg(test)]
@@ -177,7 +178,7 @@ mod tests {
     }
     
     #[test]
-    fn gradient_accumulates_when_value_resused() {
+    fn gradient_accumulates_when_value_reused() {
         let a = Value::new(3.0);
         let y = a.mul(&a);
 
