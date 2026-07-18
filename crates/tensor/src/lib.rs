@@ -168,7 +168,61 @@ impl Tensor {
             }
         }
 
-        Tensor::from_op(data, vec![rows, cols], vec![self.clone(), other.clone()])
+        let out = Tensor::from_op(data, vec![rows, cols], vec![self.clone(), other.clone()]);
+
+        let self_clone = self.clone();
+        let out_clone = out.clone();
+        let other_clone = other.clone();
+
+        out.0.borrow_mut().backward = Box::new(move || {
+            let out_grad = out_clone.0.borrow().grad.clone();
+            let mut left_grad_delta = vec![0.0; rows * inner];
+            let mut right_grad_delta = vec![0.0; inner * cols];
+
+            // dA = dC x Bᵀ
+            for row in 0..rows {
+                for k in 0..inner {
+                    let mut sum = 0.0;
+
+                    for col in 0..cols {
+                        let out_grad_index = row * cols + col;
+                        let right_index = k * cols + col;
+
+                        sum += out_grad[out_grad_index] * right_data[right_index];
+                    }
+
+                    let left_grad_index = row * inner + k;
+                    left_grad_delta[left_grad_index] = sum;
+                }
+            }
+
+            // dB = Aᵀ x dC
+            for k in 0..inner {
+                for col in 0..cols {
+                    let mut sum = 0.0;
+
+                    for row in 0..rows {
+                        let left_index = row * inner + k;
+                        let out_grad_index = row * cols + col;
+
+                        sum += left_data[left_index] * out_grad[out_grad_index];
+                    }
+
+                    let right_grad_index = k * cols + col;
+                    right_grad_delta[right_grad_index] = sum;
+                }
+            }
+
+            // Apply the completed delta buffer after all reads are finished.
+            for (i, delta) in left_grad_delta.iter().enumerate() {
+                self_clone.0.borrow_mut().grad[i] += delta;
+            }
+            for (i, delta) in right_grad_delta.iter().enumerate() {
+                other_clone.0.borrow_mut().grad[i] += delta;
+            }
+        });
+
+        out
     }
 }
 
@@ -359,5 +413,21 @@ mod tests {
         let b = Tensor::new(vec![7.0, 8.0, 9.0], vec![3]);
 
         a.matmul(&b);
+    }
+
+    #[test]
+    fn matmul_backward_with_unit_output_gradient() {
+        let a = Tensor::new(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3]);
+
+        let b = Tensor::new(vec![7.0, 8.0, 9.0, 10.0, 11.0, 12.0], vec![3, 2]);
+
+        let c = a.matmul(&b);
+
+        // Seed dC with ones, then run matmul's local backward rule.
+        c.0.borrow_mut().grad = vec![1.0, 1.0, 1.0, 1.0];
+        (c.0.borrow().backward)();
+
+        assert_eq!(a.0.borrow().grad, vec![15.0, 19.0, 23.0, 15.0, 19.0, 23.0],);
+        assert_eq!(b.0.borrow().grad, vec![5.0, 5.0, 7.0, 7.0, 9.0, 9.0],);
     }
 }
