@@ -445,4 +445,16 @@ mod tests {
         assert_eq!(a.0.borrow().grad, vec![23.0, 29.0, 35.0, 53.0, 67.0, 81.0]);
         assert_eq!(b.0.borrow().grad, vec![13.0, 18.0, 17.0, 24.0, 21.0, 30.0]);
     }
+
+    #[test]
+    fn matmul_reused_tensor_accumulates_gradients() {
+        let a = Tensor::new(vec![1.0, 2.0, 3.0, 4.0], vec![2, 2]);
+
+        let c = a.matmul(&a);
+
+        c.0.borrow_mut().grad = vec![1.0, 1.0, 1.0, 1.0];
+        (c.0.borrow().backward)();
+
+        assert_eq!(a.0.borrow().grad, vec![7.0, 11.0, 9.0, 13.0]);
+    }
 }
