@@ -75,7 +75,7 @@ cargo test             # run the tests
 cargo run -p cerdai-autodiff --example demo   # (once the engine + demo exist)
 ```
 
-Only the `autodiff` crate exists so far, and its implementation is written out step by step in the series rather than committed pre-built.
+The `autodiff` and `tensor` crates currently contain working milestone code, built incrementally through the series.
 
 ## The build-log
 
