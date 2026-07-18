@@ -152,6 +152,15 @@ mod tests {
     }
 
     #[test]
+    #[should_panic(expected = "mul: shape mismatch")]
+    fn mul_rejects_mismatched_shapes() {
+        let a = Tensor::new(vec![1.0, 2.0], vec![2]);
+        let b = Tensor::new(vec![3.0, 4.0], vec![1, 2]);
+
+        a.mul(&b);
+    }
+
+    #[test]
     fn tensor_new_wraps_validated_data() {
         let t = Tensor::new(vec![1.0, 2.0, 3.0, 4.0], vec![2, 2]);
         assert_eq!(t.0.borrow().data, vec![1.0, 2.0, 3.0, 4.0]);
