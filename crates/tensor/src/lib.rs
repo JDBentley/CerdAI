@@ -1,10 +1,4 @@
-// TODO:
-// [x] TensorData - add flat data and shape with the size invariant
-// [x] Indexing - add in the newtype for TensorData handle
-// [x] Add - create elementwise
-// Mul - create elementwise
-// Backward - topological walk, seed, and run closures
-
+//! CPU tensor storage and automatic-differentation operations.
 use std::rc::Rc;
 use std::cell::RefCell;
 
@@ -100,7 +94,7 @@ impl Tensor {
         let self_clone = self.clone();
         let other_clone = other.clone();
         let out_clone = out.clone();
-        out.0.borrow_mut().backward = Box::new(move || {
+    out.0.borrow_mut().backward = Box::new(move || {
             let out_grad = out_clone.0.borrow().grad.clone();
             let self_data = self_clone.0.borrow().data.clone();
             let other_data = other_clone.0.borrow().data.clone();
@@ -136,7 +130,7 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn rejects_mitsmatched_shape(){
+    fn rejects_mismatched_shape(){
         // Using 5 numbers but the shape should require 6. This should give us an error.
         TensorData::new(vec![1.0, 2.0, 3.0, 4.0, 5.0], vec![2, 3]);
     }
