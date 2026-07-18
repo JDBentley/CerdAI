@@ -37,7 +37,7 @@ After-the-fact analysis and cross-experiment memory. Not in the millisecond path
 - **Event / API server** — receives run summaries from the desktop, serves them to the Mac.
 - **Metrics dashboard** — reward trends, survival curves, the transfer matrix.
 - **Replay index** — a catalog of clip / checkpoint paths so large artifacts are referenced, not moved.
-- **Shared storage** — raw frames, clips, checkpoints, referenced by path.
+- **Artifact references** — stores paths and metadata for checkpoints, clips, logs, and replay exports kept on the NAS.
 
 ### Data flow
 
