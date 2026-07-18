@@ -39,6 +39,17 @@ After-the-fact analysis and cross-experiment memory. Not in the millisecond path
 - **Replay index** — a catalog of clip / checkpoint paths so large artifacts are referenced, not moved.
 - **Artifact references** — stores paths and metadata for checkpoints, clips, logs, and replay exports kept on the NAS.
 
+### NAS - durable artifact storage
+
+Stores large and ling-lived project artifacts outside the compute and coordination machines.
+
+- **Checkpoints** - saved model and optimizer state.
+- **Experimental configurations** - reproducible settings for completed and queued runs.
+- **Logs and metrics history** - durable records used for analysis and comparison.
+- **Replay exports** - stored trajectories and selected replay data.
+- **Recorded episode and training clips** - source material for review and video production.
+- **Scientist reports** - experiment analyses and recommendations.
+
 ### Data flow
 
 Desktop → 800 Mini: small JSON run summaries and metrics over HTTP.
