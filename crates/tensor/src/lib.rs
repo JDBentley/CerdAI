@@ -318,4 +318,20 @@ mod tests {
         assert_eq!(c.0.borrow().data, vec![58.0, 64.0, 139.0, 154.0]);
         assert_eq!(c.0.borrow().shape, vec![2, 2]);
     }
+
+    #[test]
+    #[should_panic(expected = "matmul: inner dimensions must match")]
+    fn matmul_rejects_mismatched_inner_dimensions() {
+        let a = Tensor::new(
+            vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+            vec![2, 3],
+        );
+
+        let b = Tensor::new(
+            vec![7.0, 8.0, 9.0, 10.0],
+            vec![2, 2],
+        );
+
+        a.matmul(&b);
+    }
 }
