@@ -101,8 +101,7 @@ mod tests {
         let bv = Value::new(b);
         let cv = Value::new(c);
         let out = av.mul(&bv).add(&cv);
-        let result = out.0.borrow().data;
-        result
+        out.0.borrow().data
     }
 
     #[test]
