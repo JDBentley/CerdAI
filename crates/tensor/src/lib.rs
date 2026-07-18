@@ -135,7 +135,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "data length")]
     fn rejects_mismatched_shape() {
         // Using 5 numbers but the shape should require 6. This should give us an error.
         TensorData::new(vec![1.0, 2.0, 3.0, 4.0, 5.0], vec![2, 3]);
