@@ -54,7 +54,7 @@ Milestone detail and status live in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 ```
 cerdai/
 ├── Cargo.toml            workspace root (dependency-free by design)
-├── rust-toolchain.toml   pinned stable toolchain + rustfmt/clippy
+├── rust-toolchain.toml   selected stable toolchain + rustfmt/clippy
 ├── docs/
 │   ├── ARCHITECTURE.md   the three-node system, crate map, data flow
 │   └── ROADMAP.md        build sequence, milestone status, validation plan
