@@ -41,7 +41,8 @@ After-the-fact analysis and cross-experiment memory. Not in the millisecond path
 
 ### Data flow
 
-Desktop → 800 Mini: small JSON run summaries over HTTP; raw artifacts to shared storage.
+Desktop → 800 Mini: small JSON run summaries and metrics over HTTP.
+Desktop → NAS: checkpoints, clips, logs, replay exports, and other large artifacts.
 800 Mini → Mac: the scientist pulls summaries and selected clips.
 Mac → Desktop: the proposed next-experiment config flows back to the trainer, closing the loop.
 
