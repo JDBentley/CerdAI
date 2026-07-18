@@ -103,7 +103,11 @@ impl Tensor {
             .collect();
 
         let shape = self.0.borrow().shape.clone();
-        let out = Tensor::new(data, shape);
+        let out = Tensor::from_op(
+            data,
+            shape,
+            vec![self.clone(), other.clone()],
+        );
 
         let self_clone = self.clone();
         let other_clone = other.clone();
@@ -221,6 +225,25 @@ mod tests {
             &a.0
         ));
         assert!(std::rc::Rc::ptr_eq(
+            &output_data.children[1].0,
+            &b.0
+        ));
+    }
+
+    #[test]
+    fn mul_records_input_tensors_as_children() {
+        let a = Tensor::new(vec![1.0, 2.0], vec![2]);
+        let b = Tensor::new(vec![3.0, 4.0], vec![2]);
+
+        let output = a.mul(&b);
+        let output_data = output.0.borrow();
+
+        assert_eq!(output_data.children.len(), 2);
+        assert!(Rc::ptr_eq(
+            &output_data.children[0].0,
+            &a.0
+        ));
+        assert!(Rc::ptr_eq(
             &output_data.children[1].0,
             &b.0
         ));
