@@ -196,6 +196,7 @@ mod tests {
 
         // Forward elemntwise product
         assert_eq!(c.0.borrow().data, vec![10.0, 18.0, 28.0]);
+        assert_eq!(c.0.borrow().shape, vec![3]);
 
         // Seed grad to 1s
         c.0.borrow_mut().grad = vec![1.0, 1.0, 1.0];
