@@ -33,6 +33,7 @@ CerdAI Distributes responsibilities across dedicated machines and storage:
 - **MacBook Pro** — the *scientist*: runs a local LLM and the hand-built tiered memory, studies each run, and proposes the next experiment. The slow loop.
 - **HP 800 Mini** — the *coordinator*: validates experiment configurations, maintains the experiment queue and metadata, recieves metrics, serves the local dashboard, and stores references to artifacts on the NAS. It does not train models or sit in the real-time action loop.
 - **NAS** - the *artifact store*: keeps checkpoints, experiment configurations, logs, replay exports, recorded episodes, training clips, scientist reports, and metrics history.
+- **Windows Laptop** - the *streaming system*: recieves the training desktop's video through a capture card, runs OBS and the dashboard, handles encoding and broadcasting without loading the training desktop. 
 
 Full detail — the data flow, the three hierarchies, the crate map, and the reference architectures — is in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
