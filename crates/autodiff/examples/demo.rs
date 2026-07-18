@@ -16,6 +16,7 @@ fn main() {
         x.0.borrow().data,
         b.0.borrow().data
     );
+    println!("output = {}", output.0.borrow().data);
     println!();
     println!("Gradients (d output / d input):");
     println!("dw = {} (equals x)", w.0.borrow().grad);
