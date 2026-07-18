@@ -60,9 +60,10 @@ cerdai/
 │   └── ROADMAP.md        build sequence, milestone status, validation plan
 └── crates/
     └── autodiff/         milestone 1 — the scalar autodiff engine
+    └── tensor/           milestone 2 — tensor autodiff and operations   
 ```
 
-This is a **Cargo workspace**. It starts with a single crate and gains new members (`tensor`, `nn`, `worldmodel`, `hrl`, `perception`, …) as each milestone is built — the planned crate map is in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Crates are added when they hold real, working code, not before.
+This is a **Cargo workspace**. It starts with a single crate and it grows by adding new member crates (`tensor`, `nn`, `worldmodel`, `hrl`, `perception`, …) as each milestone is built — the planned crate map is in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Crates are added when they hold real, working code, not before.
 
 ## Building
 
