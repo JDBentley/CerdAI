@@ -1,4 +1,4 @@
-//! CPU tensor storage and automatic-differentation operations.
+//! CPU tensor storage and automatic-differentiation operations.
 use std::cell::RefCell;
 use std::rc::Rc;
 
