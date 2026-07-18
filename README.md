@@ -1,6 +1,6 @@
 ## What this is
 
-CERD is an agent that learns to play commercial video games the way a person does: it watches the screen and presses keys. It does **not** read game memory or call any game API — perception is raw pixels, action is emitted input.
+CerdAI is an agent that learns to play commercial video games the way a person does: it watches the screen and presses keys. It does **not** read game memory or call any game API — perception is raw pixels, action is emitted input.
 
 Under the hood it fuses three ideas:
 
@@ -27,7 +27,7 @@ The entire project is written by hand. There is no PyTorch, no Gym, no RL librar
 
 ## Architecture
 
-Three machines, each with a job:
+CerdAI Distributes responsibilities across dedicated machines and storage:
 
 - **Windows desktop (RTX 3070 Ti)** — the *player*: captures the screen, runs the policy, emits input, and trains the world model and hierarchy. The fast loop.
 - **MacBook Pro** — the *scientist*: runs a local LLM and the hand-built tiered memory, studies each run, and proposes the next experiment. The slow loop.

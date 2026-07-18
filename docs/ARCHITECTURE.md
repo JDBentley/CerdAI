@@ -1,10 +1,10 @@
 # Architecture
 
-This document describes the intended shape of CERD. Much of it is not built yet — the [roadmap](ROADMAP.md) tracks what is. It is written so a visitor can understand the system before most of it exists.
+This document describes the intended shape of CerdAI. Much of it is not built yet — the [roadmap](ROADMAP.md) tracks what is. It is written so a visitor can understand the system before most of it exists.
 
 ## The distributed system
 
-CERD runs across three machines, split by timescale.
+CerdAI runs across three machines, split by timescale.
 
 ### Windows desktop — RTX 3070 Ti — the player (fast loop)
 
