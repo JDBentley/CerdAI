@@ -342,4 +342,13 @@ mod tests {
         assert!(Rc::ptr_eq(&output_data.children[0].0, &a.0));
         assert!(Rc::ptr_eq(&output_data.children[1].0, &b.0));
     }
+
+    #[test]
+    #[should_panic(expected = "matmul: left tensor must be 2-D")]
+    fn matmul_rejects_non_matrix_left_operand() {
+        let a = Tensor::new(vec![1.0, 2.0, 3.0], vec![3]);
+        let b = Tensor::new(vec![4.0, 5.0, 6.0, 7.0, 8.0, 9.0], vec![3, 2]);
+
+        a.matmul(&b);
+    }
 }
