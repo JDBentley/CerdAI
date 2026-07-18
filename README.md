@@ -52,7 +52,7 @@ Milestone detail and status live in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 ## Repository layout
 
 ```
-cerd/
+cerdai/
 ├── Cargo.toml            workspace root (dependency-free by design)
 ├── rust-toolchain.toml   pinned stable toolchain + rustfmt/clippy
 ├── docs/
