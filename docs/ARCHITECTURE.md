@@ -2,7 +2,7 @@
 
 This document describes the intended shape of CERD. Much of it is not built yet — the [roadmap](ROADMAP.md) tracks what is. It is written so a visitor can understand the system before most of it exists.
 
-## The three-node system
+## The distributed system
 
 CERD runs across three machines, split by timescale.
 
