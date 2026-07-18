@@ -322,16 +322,24 @@ mod tests {
     #[test]
     #[should_panic(expected = "matmul: inner dimensions must match")]
     fn matmul_rejects_mismatched_inner_dimensions() {
-        let a = Tensor::new(
-            vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
-            vec![2, 3],
-        );
+        let a = Tensor::new(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3]);
 
-        let b = Tensor::new(
-            vec![7.0, 8.0, 9.0, 10.0],
-            vec![2, 2],
-        );
+        let b = Tensor::new(vec![7.0, 8.0, 9.0, 10.0], vec![2, 2]);
 
         a.matmul(&b);
+    }
+
+    #[test]
+    fn matmul_records_input_tensors_as_children() {
+        let a = Tensor::new(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3]);
+
+        let b = Tensor::new(vec![7.0, 8.0, 9.0, 10.0, 11.0, 12.0], vec![3, 2]);
+
+        let output = a.matmul(&b);
+        let output_data = output.0.borrow();
+
+        assert_eq!(output_data.children.len(), 2);
+        assert!(Rc::ptr_eq(&output_data.children[0].0, &a.0));
+        assert!(Rc::ptr_eq(&output_data.children[1].0, &b.0));
     }
 }
