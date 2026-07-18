@@ -188,6 +188,18 @@ mod tests {
     }
 
     #[test]
+    fn add_reused_tensor_accumulates() {
+        let a = Tensor::new(vec![3.0, 4.0], vec![2]);
+
+        let y = a.add(&a);
+
+        y.0.borrow_mut().grad = vec![1.0, 1.0];
+        (y.0.borrow().backward)();
+
+        assert_eq!(a.0.borrow().grad, vec![2.0, 2.0]);
+    }
+
+    #[test]
     fn mul_reused_tensor_accumulates() {
         let a = Tensor::new(vec![3.0, 4.0], vec![2]);
 
