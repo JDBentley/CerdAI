@@ -430,4 +430,19 @@ mod tests {
         assert_eq!(a.0.borrow().grad, vec![15.0, 19.0, 23.0, 15.0, 19.0, 23.0],);
         assert_eq!(b.0.borrow().grad, vec![5.0, 5.0, 7.0, 7.0, 9.0, 9.0],);
     }
+
+    #[test]
+    fn matmul_backward_with_non_uniform_output_gradient() {
+        let a = Tensor::new(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3]);
+        let b = Tensor::new(vec![7.0, 8.0, 9.0, 10.0, 11.0, 12.0], vec![3, 2]);
+
+        let c = a.matmul(&b);
+
+        // dC = [[1, 2], [3, 4]]
+        c.0.borrow_mut().grad = vec![1.0, 2.0, 3.0, 4.0];
+        (c.0.borrow().backward)();
+
+        assert_eq!(a.0.borrow().grad, vec![23.0, 29.0, 35.0, 53.0, 67.0, 81.0]);
+        assert_eq!(b.0.borrow().grad, vec![13.0, 18.0, 17.0, 24.0, 21.0, 30.0]);
+    }
 }
