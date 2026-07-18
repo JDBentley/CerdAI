@@ -132,6 +132,7 @@ mod tests {
         let t = TensorData::new(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3]);
         assert_eq!(t.data.len(), 6);
         assert_eq!(t.shape, vec![2, 3]);
+        assert_eq!(t.grad, vec![0.0; 6]);
     }
 
     #[test]
