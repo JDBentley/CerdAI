@@ -50,6 +50,17 @@ Stores large and ling-lived project artifacts outside the compute and coordinati
 - **Recorded episode and training clips** - source material for review and video production.
 - **Scientist reports** - experiment analyses and recommendations.
 
+### Windows Laptop - Livestream Production
+
+Handles eventual stream productiona fter the agent has meaningful training activity to show.
+
+- **Video ingest** - recieves the training desktops display through a capture card.
+- **OBS Production** - assembles the stream layout and recorded output.
+- **Dashboard rendering** - displays the metrics dashboard as a browser source.
+- **Encoding and broadcast** - handles stream encoding and delivery.
+- **Workload isolation** - keeps recording and streaming overhead off the training desktop.
+
+
 ### Data flow
 
 Desktop → 800 Mini: small JSON run summaries and metrics over HTTP.
