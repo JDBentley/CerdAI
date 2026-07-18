@@ -66,7 +66,7 @@ This is a **Cargo workspace**. It starts with a single crate and gains new membe
 
 ## Building
 
-Requires a Rust toolchain (installed via [rustup](https://rustup.rs)); the version is pinned in `rust-toolchain.toml`.
+Requires [rustup](https://rustup.rs)); `rust-toolchain.toml` selects the stable toolchain and includes rustfmt and clippy.
 
 ```sh
 cargo build            # build the workspace
