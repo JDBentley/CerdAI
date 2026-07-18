@@ -39,6 +39,16 @@ impl Tensor {
         Tensor(Rc::new(RefCell::new(TensorData::new(data, shape))))
     }
 
+    fn from_op(
+        data: Vec<f64>,
+        shape: Vec<usize>,
+        children: Vec<Tensor>,
+    ) -> Tensor {
+        let tensor = Tensor::new(data, shape);
+        tensor.0.borrow_mut().children = children;
+        tensor
+    }
+
     fn add(&self, other: &Tensor) -> Tensor {
         assert_eq!(
             self.0.borrow().shape,
@@ -56,7 +66,11 @@ impl Tensor {
             .collect();
         
         let shape = self.0.borrow().shape.clone();
-        let out = Tensor::new(data, shape);
+        let out = Tensor::from_op(
+            data,
+            shape,
+            vec![self.clone(), other.clone()],
+        );
 
         let self_clone = self.clone();
         let other_clone = other.clone();
@@ -190,6 +204,26 @@ mod tests {
         (y.0.borrow().backward)();
 
         assert_eq!(a.0.borrow().grad, vec![6.0, 8.0]);
+    }
+
+    #[test]
+    fn add_records_input_tensors_as_children() {
+        let a = Tensor::new(vec![1.0, 2.0], vec![2]);
+        let b = Tensor::new(vec![3.0, 4.0], vec![2]);
+
+        let output = a.add(&b);
+
+        let output_data = output.0.borrow();
+
+        assert_eq!(output_data.children.len(), 2);
+        assert!(std::rc::Rc::ptr_eq(
+            &output_data.children[0].0,
+            &a.0
+        ));
+        assert!(std::rc::Rc::ptr_eq(
+            &output_data.children[1].0,
+            &b.0
+        ));
     }
 
 }
