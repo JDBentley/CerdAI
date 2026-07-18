@@ -71,7 +71,7 @@ Requires a Rust toolchain (installed via [rustup](https://rustup.rs)); the versi
 ```sh
 cargo build            # build the workspace
 cargo test             # run the tests
-cargo run -p cerd-autodiff --example demo   # (once the engine + demo exist)
+cargo run -p cerdai-autodiff --example demo   # (once the engine + demo exist)
 ```
 
 Only the `autodiff` crate exists so far, and its implementation is written out step by step in the series rather than committed pre-built.
