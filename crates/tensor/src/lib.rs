@@ -351,4 +351,13 @@ mod tests {
 
         a.matmul(&b);
     }
+
+    #[test]
+    #[should_panic(expected = "matmul: right tensor must be 2-D")]
+    fn matmul_rejects_non_matrix_right_operand() {
+        let a = Tensor::new(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![3, 2]);
+        let b = Tensor::new(vec![7.0, 8.0, 9.0], vec![3]);
+
+        a.matmul(&b);
+    }
 }
