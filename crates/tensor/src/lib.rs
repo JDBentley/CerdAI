@@ -121,6 +121,55 @@ impl Tensor {
 
         out
     }
+
+    fn matmul(&self, other: &Tensor) -> Tensor {
+        let left_shape = self.0.borrow().shape.clone();
+        let right_shape = other.0.borrow().shape.clone();
+
+        assert_eq!(
+            self.0.borrow().shape.len(),
+            2,
+            "matmul: left tensor must be 2-D"
+        );
+        assert_eq!(
+            other.0.borrow().shape.len(),
+            2,
+            "matmul: right tensor must be 2-D"
+        );
+
+        // Matrix multiplcation requires [m, k] x [k, n].
+        let rows = left_shape[0];
+        let inner = left_shape[1];
+        let other_inner = right_shape[0];
+        let cols = right_shape[1];
+
+        assert_eq!(inner, other_inner, "matmul: inner dimensions must match");
+
+        let left_data = self.0.borrow().data.clone();
+        let right_data = other.0.borrow().data.clone();
+
+        let mut data = vec![0.0; rows * cols];
+
+        // Row-major matrix multiplicaiton:
+        // output[row, col] is the dot product of a left row and right column.
+        for row in 0..rows {
+            for col in 0..cols {
+                let mut sum = 0.0;
+
+                for k in 0..inner {
+                    let left_index = row * inner + k;
+                    let right_index = k * cols + col;
+
+                    sum += left_data[left_index] * right_data[right_index]
+                }
+
+                let output_index = row * cols + col;
+                data[output_index] = sum;
+            }
+        }
+
+        Tensor::from_op(data, vec![rows, cols], vec![self.clone(), other.clone()])
+    }
 }
 
 #[cfg(test)]
@@ -256,5 +305,17 @@ mod tests {
         assert_eq!(output_data.children.len(), 2);
         assert!(Rc::ptr_eq(&output_data.children[0].0, &a.0));
         assert!(Rc::ptr_eq(&output_data.children[1].0, &b.0));
+    }
+
+    #[test]
+    fn matmul_forward_2x3_by_3x2() {
+        let a = Tensor::new(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3]);
+
+        let b = Tensor::new(vec![7.0, 8.0, 9.0, 10.0, 11.0, 12.0], vec![3, 2]);
+
+        let c = a.matmul(&b);
+
+        assert_eq!(c.0.borrow().data, vec![58.0, 64.0, 139.0, 154.0]);
+        assert_eq!(c.0.borrow().shape, vec![2, 2]);
     }
 }
