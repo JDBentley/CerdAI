@@ -176,6 +176,7 @@ mod tests {
 
         // Forward elentwise sum
         assert_eq!(c.0.borrow().data, vec![11.0, 22.0, 33.0, 44.0]);
+        assert_eq!(c.0.borrow().shape, vec![2, 2]);
 
         // Seed the output manually
         c.0.borrow_mut().grad = vec![1.0, 1.0, 1.0, 1.0];
