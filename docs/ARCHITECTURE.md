@@ -71,8 +71,8 @@ The workspace grows as milestones land. Crates are added only when they contain 
 
 | Crate | Node | Role | Status |
 | --- | --- | --- | --- |
-| `autodiff` | desktop | scalar reverse-mode autodiff | **in progress** |
-| `tensor` | desktop | tensor autodiff | planned |
+| `autodiff` | desktop | scalar reverse-mode autodiff | **complete** |
+| `tensor` | desktop | tensor autodiff | planned | **in progress** |
 | `nn` | desktop | network layers (linear, conv, GRU, …) | planned |
 | `kernels` | desktop | hand-written GPU kernels (CubeCL) | planned |
 | `worldmodel` | desktop | the RSSM world model | planned |
