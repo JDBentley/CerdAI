@@ -9,7 +9,7 @@ fn main() {
 
     output.backward();
 
-    println!("Neuron output = w * x * b");
+    println!("Neuron output = w * x + b");
     println!(
         "w = {}, x = {}, b = {}",
         w.0.borrow().data,
