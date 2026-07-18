@@ -6,8 +6,8 @@ Status key: **[ ]** planned · **[~]** in progress · **[x]** done.
 
 ## Foundation
 
-- **[~] 1 · Scalar autodiff.** A scalar reverse-mode automatic-differentiation engine in Rust, standard library only. *Done bar:* analytic gradients match numerical (finite-difference) gradients to ~1e-8 on a composed expression.
-- **[ ] 2 · Tensor autodiff + layers.** Extend to tensors; implement network layers (linear, activations) and validate them on CPU. *Done bar:* a tiny network trains on a toy task (MNIST-scale) end to end.
+- **[x] 1 · Scalar autodiff.** A scalar reverse-mode automatic-differentiation engine in Rust, standard library only. *Done bar:* analytic gradients match numerical (finite-difference) gradients to ~1e-8 on a composed expression.
+- **[~] 2 · Tensor autodiff + layers.** Extend to tensors; implement network layers (linear, activations) and validate them on CPU. *Done bar:* a tiny network trains on a toy task (MNIST-scale) end to end.
 - **[ ] 3 · GPU kernels.** Move the hot paths onto the RTX 3070 Ti with hand-written CubeCL kernels. *Done bar:* the same training runs on the GPU with matching results and a real speedup.
 
 ## The game-learning engine
