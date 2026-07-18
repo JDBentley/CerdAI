@@ -111,11 +111,11 @@ impl Tensor {
                 self_grad_delta[i] = out_grad[i] * other_data[i];
                 other_grad_delta[i] = out_grad[i] * self_data[i];
             }
-            for i in 0..out_grad.len() {
-                self_clone.0.borrow_mut().grad[i] += self_grad_delta[i];
+            for (i, delta) in self_grad_delta.iter().enumerate() {
+                self_clone.0.borrow_mut().grad[i] += delta;
             }
-            for i in 0..out_grad.len() {
-                other_clone.0.borrow_mut().grad[i] += other_grad_delta[i];
+            for (i, delta) in other_grad_delta.iter().enumerate() {
+                other_clone.0.borrow_mut().grad[i] += delta;
             }
         });
 
