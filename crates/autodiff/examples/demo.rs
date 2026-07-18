@@ -10,7 +10,12 @@ fn main() {
     output.backward();
 
     println!("Neuron output = w * x * b");
-    println!("w = {}, x = {}, b = {}", w.0.borrow().data, x.0.borrow().data, b.0.borrow().data);
+    println!(
+        "w = {}, x = {}, b = {}",
+        w.0.borrow().data,
+        x.0.borrow().data,
+        b.0.borrow().data
+    );
     println!();
     println!("Gradients (d output / d input):");
     println!("dw = {} (equals x)", w.0.borrow().grad);

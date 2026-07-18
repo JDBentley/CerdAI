@@ -1,5 +1,5 @@
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::rc::Rc;
 
 pub struct ValueData {
     pub data: f64,
@@ -13,7 +13,7 @@ pub struct Value(pub Rc<RefCell<ValueData>>);
 
 impl Value {
     pub fn new(data: f64) -> Value {
-        Value (Rc::new(RefCell::new(ValueData {
+        Value(Rc::new(RefCell::new(ValueData {
             data,
             grad: 0.0,
             children: Vec::new(),
@@ -29,7 +29,7 @@ impl Value {
             children: vec![self.clone(), other.clone()],
             backward: Box::new(|| {}),
         })));
-        
+
         let self_clone = self.clone();
         let other_clone = other.clone();
         let out_clone = out.clone();
@@ -84,13 +84,12 @@ impl Value {
             let self_data = self_clone.0.borrow().data;
             let other_data = other_clone.0.borrow().data;
             let out_grad = out_clone.0.borrow().grad;
-            self_clone.0.borrow_mut().grad  += out_grad * other_data;
+            self_clone.0.borrow_mut().grad += out_grad * other_data;
             other_clone.0.borrow_mut().grad += out_grad * self_data;
         });
 
         out
     }
-
 }
 
 #[cfg(test)]
@@ -112,7 +111,7 @@ mod tests {
         assert_eq!(v.0.borrow().data, 3.0);
         assert_eq!(v.0.borrow().grad, 0.0);
     }
-    
+
     #[test]
     fn value_can_feed_two_ops() {
         let a = Value::new(2.0);
@@ -176,7 +175,7 @@ mod tests {
         assert_eq!(a.0.borrow().grad, 3.0);
         assert_eq!(b.0.borrow().grad, 2.0);
     }
-    
+
     #[test]
     fn gradient_accumulates_when_value_reused() {
         let a = Value::new(3.0);

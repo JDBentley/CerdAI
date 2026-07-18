@@ -1,6 +1,6 @@
 //! CPU tensor storage and automatic-differentation operations.
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::rc::Rc;
 
 struct TensorData {
     data: Vec<f64>,
@@ -24,12 +24,12 @@ impl TensorData {
             shape,
             expected
         );
-        TensorData { 
-            data, 
+        TensorData {
+            data,
             shape,
             grad: vec![0.0; expected],
             children: Vec::new(),
-            backward: Box::new(|| {}), 
+            backward: Box::new(|| {}),
         }
     }
 }
@@ -39,11 +39,7 @@ impl Tensor {
         Tensor(Rc::new(RefCell::new(TensorData::new(data, shape))))
     }
 
-    fn from_op(
-        data: Vec<f64>,
-        shape: Vec<usize>,
-        children: Vec<Tensor>,
-    ) -> Tensor {
+    fn from_op(data: Vec<f64>, shape: Vec<usize>, children: Vec<Tensor>) -> Tensor {
         let tensor = Tensor::new(data, shape);
         tensor.0.borrow_mut().children = children;
         tensor
@@ -62,15 +58,11 @@ impl Tensor {
             .data
             .iter()
             .zip(other.0.borrow().data.iter())
-            .map(| (a, b)| a + b)
+            .map(|(a, b)| a + b)
             .collect();
-        
+
         let shape = self.0.borrow().shape.clone();
-        let out = Tensor::from_op(
-            data,
-            shape,
-            vec![self.clone(), other.clone()],
-        );
+        let out = Tensor::from_op(data, shape, vec![self.clone(), other.clone()]);
 
         let self_clone = self.clone();
         let other_clone = other.clone();
@@ -103,20 +95,16 @@ impl Tensor {
             .collect();
 
         let shape = self.0.borrow().shape.clone();
-        let out = Tensor::from_op(
-            data,
-            shape,
-            vec![self.clone(), other.clone()],
-        );
+        let out = Tensor::from_op(data, shape, vec![self.clone(), other.clone()]);
 
         let self_clone = self.clone();
         let other_clone = other.clone();
         let out_clone = out.clone();
-    out.0.borrow_mut().backward = Box::new(move || {
+        out.0.borrow_mut().backward = Box::new(move || {
             let out_grad = out_clone.0.borrow().grad.clone();
             let self_data = self_clone.0.borrow().data.clone();
             let other_data = other_clone.0.borrow().data.clone();
-            
+
             let mut self_grad_delta = vec![0.0; out_grad.len()];
             let mut other_grad_delta = vec![0.0; out_grad.len()];
             for i in 0..out_grad.len() {
@@ -148,7 +136,7 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn rejects_mismatched_shape(){
+    fn rejects_mismatched_shape() {
         // Using 5 numbers but the shape should require 6. This should give us an error.
         TensorData::new(vec![1.0, 2.0, 3.0, 4.0, 5.0], vec![2, 3]);
     }
@@ -220,14 +208,8 @@ mod tests {
         let output_data = output.0.borrow();
 
         assert_eq!(output_data.children.len(), 2);
-        assert!(std::rc::Rc::ptr_eq(
-            &output_data.children[0].0,
-            &a.0
-        ));
-        assert!(std::rc::Rc::ptr_eq(
-            &output_data.children[1].0,
-            &b.0
-        ));
+        assert!(std::rc::Rc::ptr_eq(&output_data.children[0].0, &a.0));
+        assert!(std::rc::Rc::ptr_eq(&output_data.children[1].0, &b.0));
     }
 
     #[test]
@@ -239,14 +221,7 @@ mod tests {
         let output_data = output.0.borrow();
 
         assert_eq!(output_data.children.len(), 2);
-        assert!(Rc::ptr_eq(
-            &output_data.children[0].0,
-            &a.0
-        ));
-        assert!(Rc::ptr_eq(
-            &output_data.children[1].0,
-            &b.0
-        ));
+        assert!(Rc::ptr_eq(&output_data.children[0].0, &a.0));
+        assert!(Rc::ptr_eq(&output_data.children[1].0, &b.0));
     }
-
 }
