@@ -46,29 +46,53 @@ impl Tensor {
     }
 
     fn add(&self, other: &Tensor) -> Tensor {
-        assert_eq!(
-            self.0.borrow().shape,
-            other.0.borrow().shape,
-            "add: shape mismatch"
+        let self_shape = self.0.borrow().shape.clone();
+        let other_shape = other.0.borrow().shape.clone();
+
+        let same_shape = self_shape == other_shape;
+        let broadcasts_right_row =
+            self_shape.len() == 2 && other_shape.len() == 1 && self_shape[1] == other_shape[0];
+
+        assert!(
+            same_shape || broadcasts_right_row,
+            "add: shape mismatch: left {:?}, right {:?}",
+            self_shape,
+            other_shape
         );
 
-        let data: Vec<f64> = self
-            .0
-            .borrow()
-            .data
-            .iter()
-            .zip(other.0.borrow().data.iter())
-            .map(|(a, b)| a + b)
-            .collect();
+        let self_data = self.0.borrow().data.clone();
+        let other_data = other.0.borrow().data.clone();
 
-        let shape = self.0.borrow().shape.clone();
-        let out = Tensor::from_op(data, shape, vec![self.clone(), other.clone()]);
+        let data: Vec<f64> = if same_shape {
+            self_data
+                .iter()
+                .zip(other_data.iter())
+                .map(|(a, b)| a + b)
+                .collect()
+        } else {
+            let columns = self_shape[1];
+
+            // Row-major storage repeats the raw vector for every matrix row
+            // Modulo maps each flat matrix position back to its column.
+            self_data
+                .iter()
+                .enumerate()
+                .map(|(index, value)| value + other_data[index % columns])
+                .collect()
+        };
+
+        let out = Tensor::from_op(data, self_shape, vec![self.clone(), other.clone()]);
 
         let self_clone = self.clone();
         let other_clone = other.clone();
         let out_clone = out.clone();
         out.0.borrow_mut().backward = Box::new(move || {
+            if broadcasts_right_row {
+                panic!("add: row-vector broadcast backward pass is not implemented");
+            }
+
             let out_grad = out_clone.0.borrow().grad.clone();
+
             for (i, g) in out_grad.iter().enumerate() {
                 self_clone.0.borrow_mut().grad[i] += g;
                 other_clone.0.borrow_mut().grad[i] += g;
@@ -456,5 +480,17 @@ mod tests {
         (c.0.borrow().backward)();
 
         assert_eq!(a.0.borrow().grad, vec![7.0, 11.0, 9.0, 13.0]);
+    }
+
+    #[test]
+    fn add_broadcast_right_row_vector_across_matrix_rows() {
+        let matrix = Tensor::new(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3]);
+        let row = Tensor::new(vec![10.0, 20.0, 30.0], vec![3]);
+
+        let output = matrix.add(&row);
+        let output_data = output.0.borrow();
+
+        assert_eq!(output_data.data, vec![11.0, 22.0, 33.0, 14.0, 25.0, 36.0]);
+        assert_eq!(output_data.shape, vec![2, 3]);
     }
 }
