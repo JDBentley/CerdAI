@@ -113,7 +113,7 @@ impl Tensor {
             if broadcasts_left_row {
                 panic!("add: left row-vector braodcast backward pass is not implemented");
             }
-            
+
             let out_grad = out_clone.0.borrow().grad.clone();
 
             // Every output element corresponds directly to one element of
@@ -327,10 +327,10 @@ mod tests {
     #[test]
     #[should_panic(expected = "add: shape mismatch")]
     fn add_rejects_mismatched_shapes() {
-        let a = Tensor::new(vec![1.0, 2.0], vec![2]);
-        let b = Tensor::new(vec![3.0, 4.0], vec![1, 2]);
+        let matrix = Tensor::new(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3],);
+        let invalid_row = Tensor::new(vec![10.0, 20.0], vec![2]);
 
-        a.add(&b);
+        matrix.add(&invalid_row);
     }
 
     #[test]
