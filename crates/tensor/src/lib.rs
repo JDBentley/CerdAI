@@ -80,6 +80,11 @@ impl Tensor {
                 .map(|(index, value)| value + other_data[index % columns])
                 .collect()
         };
+        let broadcast_columns = if broadcasts_right_row {
+            Some(other_shape[0])
+        } else {
+            None
+        };
 
         let out = Tensor::from_op(data, self_shape, vec![self.clone(), other.clone()]);
 
@@ -87,15 +92,45 @@ impl Tensor {
         let other_clone = other.clone();
         let out_clone = out.clone();
         out.0.borrow_mut().backward = Box::new(move || {
-            if broadcasts_right_row {
-                panic!("add: row-vector broadcast backward pass is not implemented");
-            }
-
             let out_grad = out_clone.0.borrow().grad.clone();
 
-            for (i, g) in out_grad.iter().enumerate() {
-                self_clone.0.borrow_mut().grad[i] += g;
-                other_clone.0.borrow_mut().grad[i] += g;
+            // Every output element corresponds directly to one element of
+            // Left matrix, so it's local gradient is uncahnged.
+            let self_delta = out_grad.clone();
+
+            let other_delta = match broadcast_columns {
+                Some(columns) => {
+                    let mut delta = vec![0.0; columns];
+
+                    // The broadcast row is reused for every matrix row. Gradient
+                    // controbutions therefore reduce into their corresponding column.
+                    for (index, grad) in out_grad.iter().enumerate() {
+                        delta [index % columns] += grad;
+                    }
+
+                    delta
+
+                }
+                None => out_grad,
+
+            };
+
+            // Compute all deltas before mutation and update each RefCell in a
+            // seperate scope. This also preserves reused-node accumulation.
+            {
+                let mut self_inner = self_clone.0.borrow_mut();
+
+                for (grad, delta) in self_inner.grad.iter_mut().zip(self_delta.iter()) {
+                    *grad += *delta;
+                }
+            }
+
+            {
+                let mut other_inner = other_clone.0.borrow_mut();
+
+                for (grad, delta) in other_inner.grad.iter_mut().zip(other_delta.iter()) {
+                    *grad += *delta;
+                }
             }
         });
 
@@ -492,5 +527,21 @@ mod tests {
 
         assert_eq!(output_data.data, vec![11.0, 22.0, 33.0, 14.0, 25.0, 36.0]);
         assert_eq!(output_data.shape, vec![2, 3]);
+    }
+
+    #[test]
+    fn add_broadcast_right_row_vector_reduces_gradient_across_rows() {
+        let matrix = Tensor::new(
+            vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+            vec![2, 3],
+        );
+        let row = Tensor::new(vec![10.0, 20.0, 30.0], vec![3]);
+
+        let output = matrix.add(&row);
+         output.0.borrow_mut().grad = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+        
+         (output.0.borrow().backward)();
+
+         assert_eq!(row.0.borrow().grad, vec![5.0, 7.0, 9.0]);
     }
 }
