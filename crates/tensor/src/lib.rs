@@ -52,9 +52,17 @@ impl Tensor {
         let same_shape = self_shape == other_shape;
         let broadcasts_right_row =
             self_shape.len() == 2 && other_shape.len() == 1 && self_shape[1] == other_shape[0];
+        let broadcasts_left_row =
+            self_shape.len() == 1 && other_shape.len() == 2 && self_shape[0] == other_shape[1];
+
+        let output_shape = if broadcasts_left_row {
+            other_shape.clone()
+        } else {
+            self_shape.clone()
+        };
 
         assert!(
-            same_shape || broadcasts_right_row,
+            same_shape || broadcasts_right_row || broadcasts_left_row,
             "add: shape mismatch: left {:?}, right {:?}",
             self_shape,
             other_shape
@@ -69,29 +77,43 @@ impl Tensor {
                 .zip(other_data.iter())
                 .map(|(a, b)| a + b)
                 .collect()
-        } else {
+        } else if broadcasts_right_row {
             let columns = self_shape[1];
 
-            // Row-major storage repeats the raw vector for every matrix row
-            // Modulo maps each flat matrix position back to its column.
+            // Row major storage repeats the right row vector for each matrix row
             self_data
                 .iter()
                 .enumerate()
                 .map(|(index, value)| value + other_data[index % columns])
                 .collect()
+        } else {
+            let columns = other_shape[1];
+
+            // Left operand is the broadcast row while iteration follows
+            // the right matrix so the output remains in the matrix row major order.
+            other_data
+                .iter()
+                .enumerate()
+                .map(|(index, value)| self_data[index % columns] + value)
+                .collect()
         };
+
         let broadcast_columns = if broadcasts_right_row {
             Some(other_shape[0])
         } else {
             None
         };
 
-        let out = Tensor::from_op(data, self_shape, vec![self.clone(), other.clone()]);
+        let out = Tensor::from_op(data, output_shape, vec![self.clone(), other.clone()]);
 
         let self_clone = self.clone();
         let other_clone = other.clone();
         let out_clone = out.clone();
         out.0.borrow_mut().backward = Box::new(move || {
+            if broadcasts_left_row {
+                panic!("add: left row-vector braodcast backward pass is not implemented");
+            }
+            
             let out_grad = out_clone.0.borrow().grad.clone();
 
             // Every output element corresponds directly to one element of
@@ -105,14 +127,12 @@ impl Tensor {
                     // The broadcast row is reused for every matrix row. Gradient
                     // controbutions therefore reduce into their corresponding column.
                     for (index, grad) in out_grad.iter().enumerate() {
-                        delta [index % columns] += grad;
+                        delta[index % columns] += grad;
                     }
 
                     delta
-
                 }
                 None => out_grad,
-
             };
 
             // Compute all deltas before mutation and update each RefCell in a
@@ -531,17 +551,26 @@ mod tests {
 
     #[test]
     fn add_broadcast_right_row_vector_reduces_gradient_across_rows() {
-        let matrix = Tensor::new(
-            vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
-            vec![2, 3],
-        );
+        let matrix = Tensor::new(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3]);
         let row = Tensor::new(vec![10.0, 20.0, 30.0], vec![3]);
 
         let output = matrix.add(&row);
-         output.0.borrow_mut().grad = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
-        
-         (output.0.borrow().backward)();
+        output.0.borrow_mut().grad = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
 
-         assert_eq!(row.0.borrow().grad, vec![5.0, 7.0, 9.0]);
+        (output.0.borrow().backward)();
+
+        assert_eq!(row.0.borrow().grad, vec![5.0, 7.0, 9.0]);
+    }
+
+    #[test]
+    fn add_broadcasts_left_row_vector_across_matrix_rows() {
+        let row = Tensor::new(vec![10.0, 20.0, 30.0], vec![3]);
+        let matrix = Tensor::new(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3]);
+
+        let output = row.add(&matrix);
+        let output_inner = output.0.borrow();
+
+        assert_eq!(output_inner.data, vec![11.0, 22.0, 33.0, 14.0, 25.0, 36.0]);
+        assert_eq!(output_inner.shape, vec![2, 3]);
     }
 }
